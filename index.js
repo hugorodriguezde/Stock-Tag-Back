@@ -1,31 +1,31 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
+const cors = require('cors');
 require('dotenv').config();
 
-const cors = require('cors');
+// Create server
 const app = express();
 
-//capturar body
-app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
-// Conexion a base de datos
+// Connection to database
 const uri = `mongodb+srv://${process.env.USER}:${process.env.PASSWORD}@cluster0.vt8hlie.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 mongoose.connect(uri)
-.then(() => console.log('Conectado a MongoDB'))
-.catch(e => console.log('error db', e));
+.then(() => console.log('Connected to MongoDB'))
+.catch(e => console.log('db error', e));
 
-// import routes
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Import routes
 const authRoutes = require('./routes/auth');
 const validateToken = require('./routes/validate-token');
 const admin = require('./routes/admin');
 
-
-//route middlewares
+// Route middlewares
 app.use('/api/user', authRoutes);
 app.use('/api/admin', validateToken, admin);
+app.use('/api/products', require('./routes/product')); // Routes for products
+
 app.get('/', (req, res) => {
     res.json({
         estado: true,
@@ -33,9 +33,8 @@ app.get('/', (req, res) => {
     })
 });
 
-//iniciar server
-
+// Start server
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
-    console.log(`Corriendo en puerto ${PORT}`);
+    console.log(`Running on port ${PORT}`);
 });
